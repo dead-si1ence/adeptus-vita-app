@@ -1,6 +1,3 @@
-"use client"
-
-import { useParams } from "next/navigation"
 import Link from "next/link"
 import { Shell } from "@/components/shell"
 import { Button } from "@/components/ui/button"
@@ -103,12 +100,22 @@ function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString("en-US", options)
 }
 
-export default function BlogPostPage() {
-  const params = useParams()
-  const slug = params.slug as string
+export async function generateStaticParams() {
+  // Generate from actual blog posts instead of hardcoded values
+  return Object.keys(blogPosts).map(slug => ({
+    slug
+  }))
+}
 
-  // Get post data or show not found
-  const post = blogPosts[slug as keyof typeof blogPosts]
+// This function gets the post data based on the slug parameter
+async function getPost(slug: string) {
+  return blogPosts[slug as keyof typeof blogPosts] || null;
+}
+
+// Server component that renders the page using the slug from params
+export default async function BlogPostPage({ params }: { params: { slug: string } }) {
+  const slug = params.slug;
+  const post = await getPost(slug);
 
   if (!post) {
     return (
@@ -189,3 +196,4 @@ export default function BlogPostPage() {
     </Shell>
   )
 }
+
